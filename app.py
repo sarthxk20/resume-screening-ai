@@ -1,10 +1,13 @@
 import sys
 import os
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ROOT_DIR)
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-sys.path.append(os.path.abspath("."))
 
 from src.extractor import extract_text
 from src.preprocessing import clean_text
@@ -318,4 +321,5 @@ st.markdown(
     unsafe_allow_html=True
 
 )
+
 

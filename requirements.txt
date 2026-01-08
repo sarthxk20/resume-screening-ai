@@ -1,0 +1,8 @@
+pdfplumber
+python-docx
+nltk
+spacy
+scikit-learn
+streamlit
+pandas
+numpy

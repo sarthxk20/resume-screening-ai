@@ -4,7 +4,15 @@ import spacy
 from nltk.corpus import stopwords
 
 # Load spaCy model once
-nlp = spacy.load("en_core_web_sm")
+import spacy
+from spacy.cli import download
+
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+
 
 stop_words = set(stopwords.words("english"))
 
@@ -33,5 +41,6 @@ def clean_text(text: str) -> str:
         for token in doc
         if token.text not in stop_words and len(token.text) > 2
     ]
+
 
     return " ".join(tokens)

@@ -8,4 +8,5 @@ pandas
 numpy
 matplotlib
 sentence-transformers
+en-core-web-sm
 PyPDF2

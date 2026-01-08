@@ -4,6 +4,8 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
+sys.path.append(os.path.abspath("."))
+
 from src.extractor import extract_text
 from src.preprocessing import clean_text
 from src.matcher import (
@@ -316,3 +318,4 @@ st.markdown(
     unsafe_allow_html=True
 
 )
+

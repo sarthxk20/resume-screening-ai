@@ -1,9 +1,4 @@
-import sys
 import os
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, ROOT_DIR)
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -321,5 +316,6 @@ st.markdown(
     unsafe_allow_html=True
 
 )
+
 
 

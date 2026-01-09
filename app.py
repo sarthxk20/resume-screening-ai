@@ -262,44 +262,6 @@ with tab_compare:
         else:
             st.info("Both models produce identical scores.")
 
-# ==================================================
-# TAB 3 — OFFLINE EVALUATION
-# ==================================================
-with tab_eval:
-    st.subheader("Offline Evaluation (Human vs Models)")
-    try:
-        from src.evaluation import evaluate_models
-        st.table(evaluate_models())
-    except Exception:
-        st.info(
-            "Evaluation data not available. "
-            "This section is intended for offline model validation."
-        )
-
-# ==================================================
-# TAB 4 — EVALUATION DASHBOARD
-# ==================================================
-with tab_dashboard:
-    st.subheader("Model Performance Dashboard")
-    try:
-        from src.evaluation import evaluate_models
-        df_eval = evaluate_models()
-
-        fig, ax = plt.subplots()
-        ax.bar(
-            ["TF-IDF", "BERT"],
-            [
-                df_eval["TF-IDF Error"].mean(),
-                df_eval["BERT Error"].mean()
-            ]
-        )
-        ax.set_ylabel("Mean Absolute Error")
-        ax.set_title("TF-IDF vs BERT (Lower is Better)")
-        st.pyplot(fig)
-    except Exception:
-        st.info(
-            "Generate evaluation data to visualize model performance."
-        )
 
 # ==================================================
 # FOOTER
@@ -316,6 +278,3 @@ st.markdown(
     unsafe_allow_html=True
 
 )
-
-
-

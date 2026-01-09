@@ -1,8 +1,6 @@
 import os
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-
 
 from src.extractor import extract_text
 from src.preprocessing import clean_text
@@ -12,39 +10,28 @@ from src.matcher import (
     skill_gap,
     explain,
     recommend,
-    decision_trace,
     detect_experience
 )
 
 # ==================================================
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # ==================================================
-st.set_page_config(
-    page_title="Resume Screening AI",
-    layout="wide"
-)
+st.set_page_config(page_title="Resume Screening System", layout="wide")
 
-st.title("Resume Screening AI — ATS Simulation Platform")
+st.title("Resume Screening System")
 st.markdown(
     """
-An AI-powered Applicant Tracking System (ATS) designed to perform
-resume analysis, semantic matching, and explainable hiring decisions.
+An AI-driven Applicant Tracking System (ATS) simulation that analyzes resumes
+against job descriptions using NLP techniques and semantic similarity models.
 """
 )
 
 # ==================================================
-# UI HELPERS
+# HELPERS
 # ==================================================
-def skill_chips(
-    skills,
-    empty_message="No major skill gaps identified based on the job description."
-):
-    """
-    Display skills as clean visual chips.
-    Shows a clear message when no gaps are detected.
-    """
+def skill_chips(skills, empty_msg="No major skill gaps detected."):
     if not skills:
-        st.write(empty_message)
+        st.write(empty_msg)
         return
 
     html = ""
@@ -65,22 +52,16 @@ def skill_chips(
 
 
 def resume_completeness(resume_text):
-    """
-    Check whether key resume sections are present.
-    """
     sections = {
         "Skills": "skill",
         "Experience": "experience",
         "Education": "education"
     }
-    found = [name for name, kw in sections.items() if kw in resume_text.lower()]
+    found = [s for s, kw in sections.items() if kw in resume_text.lower()]
     return found, len(found), len(sections)
 
 
 def ats_readability(score, skill_ratio, section_ratio):
-    """
-    Heuristic indicator of ATS friendliness.
-    """
     if score >= 70 and skill_ratio >= 0.6 and section_ratio >= 0.7:
         return "Good"
     elif score >= 40:
@@ -88,44 +69,34 @@ def ats_readability(score, skill_ratio, section_ratio):
     return "Poor"
 
 # ==================================================
-# MATCHING ENGINE SELECTION
+# ENGINE SELECTION
 # ==================================================
 engine_choice = st.radio(
     "Matching Engine",
-    ["BERT (Semantic)", "TF-IDF (Keyword)"],
-    key="engine_selector"
+    ["BERT (Semantic Similarity)", "TF-IDF (Keyword Matching)"]
 )
 engine = "bert" if "BERT" in engine_choice else "tfidf"
 
 # ==================================================
-# APPLICATION TABS
+# TABS
 # ==================================================
-tab_analysis, tab_compare, tab_eval, tab_dashboard = st.tabs([
+tab_analysis, tab_compare = st.tabs([
     "Resume Analysis",
-    "Model Comparison",
+    "Model Comparison"
 ])
 
 # ==================================================
 # TAB 1 — RESUME ANALYSIS
 # ==================================================
 with tab_analysis:
-    resume_file = st.file_uploader(
-        "Upload Resume",
-        type=["pdf", "docx"],
-        key="ra_resume"
-    )
-    jd_text = st.text_area(
-        "Paste Job Description",
-        height=200,
-        key="ra_jd"
-    )
+    resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx"])
+    jd_text = st.text_area("Paste Job Description", height=200)
 
-    if st.button("Analyze Resume", key="ra_btn"):
+    if st.button("Analyze Resume"):
         if not (resume_file and jd_text.strip()):
             st.warning("Please upload a resume and paste a job description.")
             st.stop()
 
-        # --- Extract & preprocess text ---
         temp_path = f"temp_{resume_file.name}"
         with open(temp_path, "wb") as f:
             f.write(resume_file.getbuffer())
@@ -134,21 +105,24 @@ with tab_analysis:
         job_desc = clean_text(jd_text)
         os.remove(temp_path)
 
-        # --- Matching score ---
+        # ---------------- SCORING ----------------
         overall_score = (
             bert_score(resume_text, job_desc)
             if engine == "bert"
             else tfidf_score(resume_text, job_desc)
         )
 
-        # --- Skill & keyword analysis ---
-        resume_skills, job_skills, missing_skills = skill_gap(resume_text, job_desc)
-        keywords, _, missing_keywords = explain(resume_text, job_desc)
+        resume_skills, job_skills, missing_skills = skill_gap(
+            resume_text, job_desc
+        )
+        keywords, _, missing_keywords = explain(
+            resume_text, job_desc
+        )
 
         decision, confidence = recommend(overall_score)
         experience = detect_experience(resume_text)
 
-        # --- Section-wise scores ---
+        # ---------------- METRICS ----------------
         skill_score = (
             f"{len(resume_skills & job_skills)} / {len(job_skills)}"
             if job_skills else "0 / 0"
@@ -158,18 +132,18 @@ with tab_analysis:
             if keywords else "0 / 0"
         )
 
-        found_sections, found_count, total_sections = resume_completeness(resume_text)
+        found_sections, found_count, total_sections = resume_completeness(
+            resume_text
+        )
         skill_ratio = (
             len(resume_skills & job_skills) / len(job_skills)
             if job_skills else 0
         )
         ats_score = ats_readability(
-            overall_score,
-            skill_ratio,
-            found_count / total_sections
+            overall_score, skill_ratio, found_count / total_sections
         )
 
-        # --- Results ---
+        # ---------------- DISPLAY ----------------
         st.success(f"Overall Match Score: {overall_score}%")
         st.progress(min(overall_score / 100, 1.0))
 
@@ -178,10 +152,10 @@ with tab_analysis:
         st.write(f"Experience Alignment: {experience}")
 
         st.subheader("Section-wise Scoring")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Skills Match", skill_score)
-        col2.metric("Keyword Match", keyword_score)
-        col3.metric("ATS Readability", ats_score)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Skills Match", skill_score)
+        c2.metric("Keyword Match", keyword_score)
+        c3.metric("ATS Readability", ats_score)
 
         st.subheader("Resume Completeness")
         st.write(
@@ -192,47 +166,42 @@ with tab_analysis:
         st.subheader("Missing Skills")
         skill_chips(missing_skills)
 
-        # --- Explainability ---
+        # ---------------- WHY NOT SELECTED ----------------
         if overall_score < 70:
             st.subheader("Why Not Selected?")
+            reasons = []
 
             if missing_skills:
-                st.write(
-                    "The resume lacks several key skills required for this role, "
-                    f"including {', '.join(list(missing_skills)[:5])}."
+                reasons.append(
+                    f"The resume lacks key skills required for the role, such as "
+                    f"{', '.join(list(missing_skills)[:5])}."
                 )
 
             if missing_keywords:
-                st.write(
-                    "Important job-specific terms such as "
-                    f"{', '.join(list(missing_keywords)[:5])} "
-                    "are not clearly reflected in the resume."
+                reasons.append(
+                    "Several important job-related terms are missing or underrepresented, "
+                    f"including {', '.join(list(missing_keywords)[:5])}."
                 )
 
-            if not missing_skills and not missing_keywords:
-                st.write(
-                    "The resume broadly aligns with the role, but the overall score "
-                    "suggests gaps in clarity, emphasis, or depth."
+            if not reasons:
+                reasons.append(
+                    "While the resume broadly aligns with the role, the match score "
+                    "suggests insufficient depth or emphasis in critical areas."
                 )
+
+            for r in reasons:
+                st.write("- " + r)
 
 # ==================================================
 # TAB 2 — MODEL COMPARISON
 # ==================================================
 with tab_compare:
-    st.subheader("TF-IDF vs BERT — Model Comparison")
+    st.subheader("TF-IDF vs BERT Comparison")
 
-    resume_file = st.file_uploader(
-        "Upload Resume",
-        type=["pdf", "docx"],
-        key="mc_resume"
-    )
-    jd_text = st.text_area(
-        "Paste Job Description",
-        height=200,
-        key="mc_jd"
-    )
+    resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx"], key="mc_resume")
+    jd_text = st.text_area("Paste Job Description", height=200, key="mc_jd")
 
-    if st.button("Run Model Comparison", key="mc_btn"):
+    if st.button("Run Comparison"):
         if not (resume_file and jd_text.strip()):
             st.warning("Upload a resume and paste a job description.")
             st.stop()
@@ -248,18 +217,19 @@ with tab_compare:
         tfidf_result = tfidf_score(resume_text, job_desc)
         bert_result = bert_score(resume_text, job_desc)
 
-        st.table(pd.DataFrame({
+        df = pd.DataFrame({
             "Model": ["TF-IDF (Keyword)", "BERT (Semantic)"],
             "Match Score (%)": [tfidf_result, bert_result]
-        }))
+        })
+
+        st.table(df)
 
         if bert_result > tfidf_result:
-            st.info("BERT captures semantic similarity more effectively for this case.")
+            st.info("BERT captures semantic similarity more effectively for this resume.")
         elif tfidf_result > bert_result:
-            st.info("TF-IDF highlights stronger keyword overlap for this case.")
+            st.info("TF-IDF highlights stronger keyword overlap for this resume.")
         else:
             st.info("Both models produce identical scores.")
-
 
 # ==================================================
 # FOOTER
@@ -268,12 +238,10 @@ st.markdown("---")
 st.markdown(
     """
 <div style="text-align:center; font-size:14px;">
-    Built by <b>Sarthak Shandilya</b> · v1.0 · Open Source<br>
+    Built by <b>Sarthak Shandilya</b><br>
     <a href="https://github.com/sarthxk20" target="_blank">GitHub</a> |
     <a href="https://www.linkedin.com/in/sarthxk20" target="_blank">LinkedIn</a>
 </div>
 """,
     unsafe_allow_html=True
-
 )
-

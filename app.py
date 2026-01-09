@@ -103,8 +103,6 @@ engine = "bert" if "BERT" in engine_choice else "tfidf"
 tab_analysis, tab_compare, tab_eval, tab_dashboard = st.tabs([
     "Resume Analysis",
     "Model Comparison",
-    "Evaluation Benchmark",
-    "Evaluation Dashboard"
 ])
 
 # ==================================================
@@ -278,3 +276,4 @@ st.markdown(
     unsafe_allow_html=True
 
 )
+

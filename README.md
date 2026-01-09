@@ -57,26 +57,6 @@ Technology Stack
 
 ------------------------------------------------------------
 
-Project Structure
-
-resume-screening-ai/
-│
-├── app.py
-├── requirements.txt
-├── README.md
-│
-├── data/
-│   └── skills.txt
-│
-└── src/
-    ├── __init__.py
-    ├── extractor.py
-    ├── preprocessing.py
-    ├── matcher.py
-    └── evaluation.py
-
-------------------------------------------------------------
-
 How the System Works
 
 1. Resume text is extracted from PDF or DOCX files
@@ -121,3 +101,4 @@ License
 
 This project is open-source and intended for educational and demonstration
 purposes.
+

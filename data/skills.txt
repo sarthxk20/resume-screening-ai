@@ -1,0 +1,15 @@
+python
+sql
+excel
+power bi
+tableau
+machine learning
+statistics
+data analysis
+pandas
+numpy
+scikit-learn
+nlp
+deep learning
+dashboard
+visualization
